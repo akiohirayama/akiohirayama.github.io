@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Handoff &amp; Approval Card: a field guide | AKIO HIRAYAMA</title>
+<meta name="description" content="A practical guide by AKIO HIRAYAMA to the Multi-AI Handoff & Approval Card: how to fill it in, a worked (hypothetical) example, and the JSON version.">
+<link rel="canonical" href="https://akiohirayama.github.io/">
+<meta property="og:title" content="Handoff & Approval Card: a field guide | AKIO HIRAYAMA">
+<meta property="og:description" content="How to decide when AI work is actually finished, and how to hand it from one AI to another without relying on trust.">
+<meta property="og:url" content="https://akiohirayama.github.io/">
+<meta property="og:type" content="website">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","url":"https://akiohirayama.github.io/","name":"Handoff & Approval Card: a field guide","author":{"@type":"Person","@id":"https://akiohirayama.com/#person","name":"AKIO HIRAYAMA","url":"https://akiohirayama.com/"}}</script>
+<style>
+:root{--bg:#fbfaf7;--fg:#1b1b19;--muted:#5d5b55;--line:#ddd8cc;--accent:#1f4f8a;--code:#f1eee6}
+@media (prefers-color-scheme:dark){:root{--bg:#131312;--fg:#ecebe6;--muted:#a7a59d;--line:#33322e;--accent:#8fb4ea;--code:#1d1d1b}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:760px;margin:0 auto;padding:48px 16px 72px}a{color:var(--accent)}
+.k{font:600 12px/1 ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+h1{font-size:36px;line-height:1.15;margin:12px 0}h2{font-size:22px;margin:40px 0 10px;padding-top:24px;border-top:1px solid var(--line)}
+.lede{color:var(--muted);font-size:19px}
+pre{background:var(--code);border:1px solid var(--line);border-radius:8px;padding:16px;overflow-x:auto;font:14px/1.55 ui-monospace,Menlo,monospace}
+table{width:100%;border-collapse:collapse;font-size:15px}th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+.note{font-size:14px;color:var(--muted)}footer{margin-top:56px;font-size:14px;color:var(--muted);border-top:1px solid var(--line);padding-top:16px}
+</style>
+</head>
+<body>
+<main>
+<div class="k">AKIO HIRAYAMA · Field guide</div>
+<h1>The Handoff &amp; Approval Card: a field guide</h1>
+<p class="lede">How to decide when AI work is actually finished, and how to pass it from one AI to another without relying on trust.</p>
+
+<p>The card itself lives in the <a href="https://github.com/akiohirayama/multi-ai-handoff-card">multi-ai-handoff-card</a> repository. This page explains how to use it: what each field is for, what a filled-in card looks like, and where it tends to go wrong.</p>
+
+<h2>Why a card at all</h2>
+<p>An AI saying "done" is a claim. A card turns that claim into something another person, script or AI can check. The rule is simple: <strong>if a field is empty, the work is not done. It is only reported.</strong></p>
+
+<h2>Field by field</h2>
+<table>
+<tr><th>Field</th><th>What to write</th><th>Common mistake</th></tr>
+<tr><td>Task</td><td>The request in one sentence, as it was asked</td><td>Rewriting the task to match what was done</td></tr>
+<tr><td>Claimed result</td><td>What the AI says it did, quoted or summarised</td><td>Mixing the claim with the evidence</td></tr>
+<tr><td>Risk tier</td><td>auto / auto-then-verify / human approval, and why</td><td>Choosing a tier after the work is already live</td></tr>
+<tr><td>Evidence</td><td>What was checked, by what, and the result. Not the same AI run</td><td>"The AI confirmed it" counted as evidence</td></tr>
+<tr><td>Changed</td><td>Pages, files or systems touched</td><td>Listing only the intended changes</td></tr>
+<tr><td>Rollback</td><td>How to undo it, and who can</td><td>"Revert if needed" with no method</td></tr>
+<tr><td>Open items</td><td>Anything unverified, ambiguous or skipped</td><td>Leaving it blank to look finished</td></tr>
+<tr><td>Approved by</td><td>A named human, or the rule that allowed auto-approval</td><td>Approval implied by silence</td></tr>
+</table>
+
+<h2>A worked example (hypothetical)</h2>
+<p class="note">This example is invented to show the format. It does not describe a real incident.</p>
+<pre>TASK:            Translate the pricing FAQ into Spanish on a draft page
+CLAIMED RESULT:  "All 12 answers translated and saved as a draft"
+RISK TIER:       auto-then-verify (draft only; nothing public changes)
+EVIDENCE:        Script counted 12 answers in source and 12 in draft: pass
+                 Second model, fresh context, compared numbers and
+                 currencies: 1 mismatch (EUR shown as USD): fail
+CHANGED:         Draft page only
+ROLLBACK:        Delete the draft; the live page was not touched
+OPEN ITEMS:      Fix the currency line; native review of tone not done
+APPROVED BY:     Not yet. Needs a human before publishing</pre>
+<p>Note what the card does here: the AI's claim was mostly true, but the evidence field shows one failed check and the open items keep it from being called finished.</p>
+
+<h2>Machine-readable version</h2>
+<p>The same card as JSON, for pipelines and for handing work between AIs:</p>
+<pre>{
+  "task": "...",
+  "claimed_result": "...",
+  "risk_tier": "auto | auto-then-verify | human-approval",
+  "risk_reason": "...",
+  "evidence": [{"check": "...", "checked_by": "...", "result": "pass | fail | unclear"}],
+  "changed": ["..."],
+  "rollback": {"how": "...", "who": "..."},
+  "open_items": ["..."],
+  "approved_by": "..."
+}</pre>
+<p>Download it from the repository: <a href="https://github.com/akiohirayama/multi-ai-handoff-card/blob/main/card.json">card.json</a>.</p>
+
+<h2>Where it still falls short</h2>
+<ul>
+<li>A passing check is evidence, not proof. Verifiers can be wrong too.</li>
+<li>A different AI is not automatically an independent one.</li>
+<li>Risk tiers drift when the context of an action changes.</li>
+</ul>
+
+<h2>More from AKIO HIRAYAMA</h2>
+<p>Official website: <a href="https://akiohirayama.com/">akiohirayama.com</a> · Notes: <a href="https://akiohirayamanotes.wordpress.com/">Multi-AI Control Notes</a> · <a href="https://medium.com/@akiohirayama">Medium</a> · <a href="https://github.com/akiohirayama">GitHub</a><br>
+AKIO HIRAYAMA is hiring an AI Engineer (USD 30,000 per month) to build this kind of control layer: <a href="https://akiohirayamaaiengineer.wordpress.com/">role details</a></p>
+
+<footer>© AKIO HIRAYAMA · Card text licensed CC BY 4.0</footer>
+</main>
+</body>
+</html>
